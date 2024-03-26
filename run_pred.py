@@ -3,6 +3,7 @@ import torch
 from exp.exp_main import Exp_Main
 import random
 import numpy as np
+import time
 from multiprocessing import freeze_support
 
 if __name__ == '__main__':
@@ -10,9 +11,9 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Non-stationary Transformers for Time Series Forecasting')
 
     # basic config
-    parser.add_argument('--is_training', type=int, default=1, help='status')
+    parser.add_argument('--is_training', type=int, required=False, default=0, help='status')
     parser.add_argument('--model_id', type=str, required=False, default='test', help='model id')
-    parser.add_argument('--model', type=str, default='Transformer',
+    parser.add_argument('--model', type=str, required=False, default='Transformer',
                         help='model name, options: [ns_Transformer, Transformer]')
 
     # data loader
@@ -54,8 +55,8 @@ if __name__ == '__main__':
 
     # optimization
     parser.add_argument('--num_workers', type=int, default=10, help='data loader num workers')
-    parser.add_argument('--itr', type=int, default=1, help='experiments times')
-    parser.add_argument('--train_epochs', type=int, default=20, help='train epochs')
+    parser.add_argument('--itr', type=int, default=2, help='experiments times')
+    parser.add_argument('--train_epochs', type=int, default=10, help='train epochs')
     parser.add_argument('--batch_size', type=int, default=32, help='batch size of train input data')
     parser.add_argument('--patience', type=int, default=3, help='early stopping patience')
     parser.add_argument('--learning_rate', type=float, default=0.0001, help='optimizer learning rate')
@@ -131,26 +132,52 @@ if __name__ == '__main__':
                 exp.predict(setting, True)
 
             torch.cuda.empty_cache()
-    else:
-        ii = 0
-        setting = '{}_{}_{}_ft{}_sl{}_ll{}_pl{}_dm{}_nh{}_el{}_dl{}_df{}_fc{}_eb{}_dt{}_{}_{}'.format(args.model_id,
-                                                                                                    args.model,
-                                                                                                    args.data,
-                                                                                                    args.features,
-                                                                                                    args.seq_len,
-                                                                                                    args.label_len,
-                                                                                                    args.pred_len,
-                                                                                                    args.d_model,
-                                                                                                    args.n_heads,
-                                                                                                    args.e_layers,
-                                                                                                    args.d_layers,
-                                                                                                    args.d_ff,
-                                                                                                    args.factor,
-                                                                                                    args.embed,
-                                                                                                    args.distil,
-                                                                                                    args.des, ii)
+    # else:
+    #     ii = 0
+    #     setting = '{}_{}_{}_ft{}_sl{}_ll{}_pl{}_dm{}_nh{}_el{}_dl{}_df{}_fc{}_eb{}_dt{}_{}_{}'.format(args.model_id,
+    #                                                                                                 args.model,
+    #                                                                                                 args.data,
+    #                                                                                                 args.features,
+    #                                                                                                 args.seq_len,
+    #                                                                                                 args.label_len,
+    #                                                                                                 args.pred_len,
+    #                                                                                                 args.d_model,
+    #                                                                                                 args.n_heads,
+    #                                                                                                 args.e_layers,
+    #                                                                                                 args.d_layers,
+    #                                                                                                 args.d_ff,
+    #                                                                                                 args.factor,
+    #                                                                                                 args.embed,
+    #                                                                                                 args.distil,
+    #                                                                                                 args.des, ii)
 
-        exp = Exp(args)  # set experiments
-        print('>>>>>>>testing : {}<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<'.format(setting))
-        exp.test(setting, test=1)
-        torch.cuda.empty_cache()
+    #     exp = Exp(args)  # set experiments
+    #     print('>>>>>>>testing : {}<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<'.format(setting))
+    #     exp.test(setting, test=1)
+    #     torch.cuda.empty_cache()
+    if args.do_predict:
+        for ii in range(args.itr):
+            setting = '{}_{}_{}_ft{}_sl{}_ll{}_pl{}_dm{}_nh{}_el{}_dl{}_df{}_fc{}_eb{}_dt{}_{}_{}'.format(
+                    args.model_id,
+                    args.model,
+                    args.data,
+                    args.features,
+                    args.seq_len,
+                    args.label_len,
+                    args.pred_len,
+                    args.d_model,
+                    args.n_heads,
+                    args.e_layers,
+                    args.d_layers,
+                    args.d_ff,
+                    args.factor,
+                    args.embed,
+                    args.distil,
+                    args.des, ii)
+            exp = Exp(args)
+            print('>>>>>>>predicting : {}<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<'.format(setting))
+            starttime = time.time()
+            exp.predict(setting, True)
+            endtime = time.time()
+            print('Inference cost time: ',endtime - starttime)
+

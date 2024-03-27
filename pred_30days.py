@@ -37,12 +37,16 @@ if __name__ == '__main__':
     pred = pred.reshape(1,4)
     print('Prediction', pred)
     ground_value_np = ground_value.to_numpy()
-    print('Ground Value', ground_value_np)
-    pred_np = pred_np.reshape(1,4)
-    ground_value_np =  (ground_value_np - mean)/std
+    
+    try: 
+        print('Ground Value', ground_value_np)
+        pred_np = pred_np.reshape(1,4)
+        ground_value_np =  (ground_value_np - mean)/std
+        rmses = []
+        for i in range(4):
+            rmses.append(rmse(ground_value_np[0][i], pred_np[0][i]))
 
-    rmses = []
-    for i in range(4):
-        rmses.append(rmse(ground_value_np[0][i], pred_np[0][i]))
-
-    print(rmses)
+        print('RMSE', rmses)
+    
+    except:
+        print('No Ground Truth.')
